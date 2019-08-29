@@ -41,7 +41,7 @@ def get_current_branch():
 
   return log.stdout.decode().strip()
 
-# Reduce the length of all commit messages to 22 characters
+# Reduce the length of all commit messages to 31 characters
 # and append "..." if it needs to be truncated to show it was reduced
 # for cleaner console display
 def trim_length(logs):
@@ -58,14 +58,56 @@ def trim_length(logs):
         trimmed_logs[i].append(" ".join(parts))
   return trimmed_logs
 
-def colorLogs(logs):
-  pass
+def get_color_maps(logs):
+  first = logs[0]
+  color_map_1 = [None] * len(first)
+  second = logs[1]
+  color_map_2 = [None] * len(second)
+  color_map_1[0] = 3
+  color_map_2[0] = 3
+  for i, commit_1 in enumerate(first):
+    if i == 0:
+      continue
+    first_hash, first_message = commit_1.split(' ', 1)
+    for j, commit_2 in enumerate(second):
+      if j == 0:
+        continue
+      second_hash, second_message = commit_2.split(' ', 1)
+      if color_map_2[j]:
+        continue
+      if first_hash == second_hash:
+        color_map_1[i] = 1
+        color_map_2[j] = 1
+        break
+      elif first_message == second_message:
+        color_map_1[i] = 2
+        color_map_2[j] = 2
+    for i, color in enumerate(color_map_1):
+      if not color:
+        color_map_1[i] = 0
+    for i, color in enumerate(color_map_2):
+      if not color:
+        color_map_2[i] = 0
+  return color_map_1, color_map_2
+
+def color_logs(color_maps, logs):
+  left_logs = logs[0]
+  left_map = color_maps[0]
+  right_logs = logs[1]
+  right_map = color_maps[1]
+  for i, commit in enumerate(left_logs):
+    left_logs[i] = makeColor(commit, left_map[i])
+  for i, commit in enumerate(right_logs):
+    right_logs[i] = makeColor(commit, right_map[i])
+  return [left_logs, right_logs]
 
 def display_logs(logs):
   trimmed_logs = trim_length(logs)
-  MAX_PADDING = 45
-  left = trimmed_logs[0]
-  right = trimmed_logs[1]
+  color_maps = get_color_maps(trimmed_logs)
+  colored_logs = color_logs(color_maps, trimmed_logs)
+  MAX_PADDING = 55
+  left = colored_logs[0]
+  right = colored_logs[1]
   max_length = max(len(left), len(right))
   for i in range(max_length):
     # temporary hardcoded. remove when everything is done in other function
