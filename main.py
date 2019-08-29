@@ -110,11 +110,7 @@ def display_logs(logs):
   right = colored_logs[1]
   max_length = max(len(left), len(right))
   for i in range(max_length):
-    # temporary hardcoded. remove when everything is done in other function
-    if i == 0:
-      padding = MAX_PADDING - len(left[i])
-      print(makeColor(left[i], 3) + padding * " " + makeColor(right[i], 3))
-    elif i >= len(right):
+    if i >= len(right):
       print(left[i])
     elif i >= len(left):
       print(MAX_PADDING * " " + right[i])
