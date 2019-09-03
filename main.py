@@ -28,7 +28,6 @@ def retreive_log(branch):
 
   return log.stdout.decode().splitlines()
 
-# if only 'other' branch is provided find current branch name
 def get_current_branch():
   try:
     log = subprocess.run(f'git branch --show-current',
@@ -58,6 +57,9 @@ def trim_length(logs):
         trimmed_logs[i].append(" ".join(parts))
   return trimmed_logs
 
+# Determine what the coloring of each commit should be
+# by iterate each commit from the left log and
+# comparing against the commits from the right log
 def get_color_maps(logs):
   first = logs[0]
   color_map_1 = [None] * len(first)
