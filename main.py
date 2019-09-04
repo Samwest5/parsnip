@@ -1,3 +1,5 @@
+""" temp """
+
 import sys
 
 from get_current_branch import get_current_branch
@@ -6,6 +8,7 @@ from display_logs import display_logs
 
 
 def run():
+    """ temp """
     logs = []
     args = sys.argv[1:]
 
