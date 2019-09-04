@@ -112,7 +112,7 @@ def get_color_maps(logs):
 
 
 def color_logs(color_maps, logs):
-  
+    """ feed logs to makeColor and return colored logs """
     left_logs = logs[0]
     left_map = color_maps[0]
     right_logs = logs[1]
