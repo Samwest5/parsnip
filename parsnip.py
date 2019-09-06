@@ -1,7 +1,7 @@
 import subprocess
 import sys
 
-def makeColor(commit, colorCode):
+def make_color(commit, colorCode):
   """
   Wraps each commit message in color formatting to change its
   color when displayed in the console.
@@ -151,9 +151,9 @@ def color_logs(color_maps, logs):
   right_logs = logs[1]
   right_map = color_maps[1]
   for i, commit in enumerate(left_logs):
-    left_logs[i] = makeColor(commit, left_map[i])
+    left_logs[i] = make_color(commit, left_map[i])
   for i, commit in enumerate(right_logs):
-    right_logs[i] = makeColor(commit, right_map[i])
+    right_logs[i] = make_color(commit, right_map[i])
   return [left_logs, right_logs]
 
 def reduce_logs_length(logs, color_maps):

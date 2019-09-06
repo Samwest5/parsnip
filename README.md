@@ -3,9 +3,12 @@
 parsnip is a minimal command line tool used to quickly compare commits
 between two branches. Commits that share a hash between both branches will be labeled green. Commits that share a message but not a hash will be labeled yellow. All other commits are labeled red. 
 
-## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+![Example](https://i.imgur.com/uwV5I9C.png)
+
+parsnip accepts one or two arguments. If provided with one argument, it will use the current branch to compare the provided one against. If provided with two arguments, it will compare the two branches against each other. 
+
+## Getting Started
 
 ### Prerequisites
 
@@ -15,13 +18,15 @@ Python 3.6 or higher
 
 ### Installing
 
-A step by step series of examples that tell you how to get the script working
+```
+git clone https://github.com/Samwest5/parsnip.git
+```
 
-Windows:
+### Running
 
-Mac:
-
-Linux:
+```
+python ./parsnip.py args
+```
 
 ## Authors
 
