@@ -2,6 +2,16 @@ import subprocess
 import sys
 
 def makeColor(commit, colorCode):
+  """
+  Wraps each commit message in color formatting to change its
+  color when displayed in the console.
+    Args:
+      commit: String containing a commit's abreviated hash and message.
+      colorCode: Integer of value 0 - 3.
+    Returns:
+      String containing commit's abreviated hash and message
+      wrapped in the matching color formatting.
+  """
   # red
   if colorCode == 0:
     return f'\033[91m{commit}\033[00m'
@@ -17,6 +27,15 @@ def makeColor(commit, colorCode):
 
 # Pipe the git log on the passed branch and return the abbreviated hashes with messages
 def retreive_log(branch):
+  """
+  In a subprocess retrieves the formatted git log of whatever branch
+  name has been passed into the function.
+  Args:
+    branch: String of name of git branch.
+  Returns: String containing commit's abreviated hash and message.
+  Raises:
+    CalledProcessError: An error occurred while running command in subprocess.
+  """
   try:
     log = subprocess.run(f'git log {branch} --pretty=format:"%h %s"',
                         stdout=subprocess.PIPE, 
@@ -28,6 +47,14 @@ def retreive_log(branch):
   return log.stdout.decode().splitlines()
 
 def get_current_branch():
+  """
+  In a subprocess retrieves the current branch name to be used as
+  one of the logs to compare against if only one argument was passed
+  when the script began. 
+  Returns: String containing current branch name
+  Raises:
+    CalledProcessError: An error occurred while running command in subprocess.
+  """
   try:
     log = subprocess.run(f'git branch --show-current',
                         stdout=subprocess.PIPE, 
@@ -38,10 +65,17 @@ def get_current_branch():
     sys.exit()
   return log.stdout.decode().strip()
 
-# Reduce the length of all commit messages to 31 characters
-# and append "..." if it needs to be truncated to show it was reduced
-# for cleaner console display
 def reduce_text_length(logs):
+  """
+  Truncates the length of every commmit message to avoid cluttering the
+  console window. 
+  Args:
+    logs: List of strings. Each element contains the commit's
+      abreviated hash and message.
+  Returns:
+    List of strings. Each element contains the commit's abreviated hash
+    and shortened message.
+  """
   trimmed_logs = []
   for i in range(len(logs)):
     trimmed_logs.append([])
@@ -55,10 +89,20 @@ def reduce_text_length(logs):
         trimmed_logs[i].append(" ".join(parts))
   return trimmed_logs
 
-# Determine what the coloring of each commit should be
-# by iterate each commit from the left log and
-# comparing against the commits from the right log
 def get_color_maps(logs):
+  """
+  Each commit from the left log is compared against every commit
+  from the right log. Commits that share a common hash are labled 
+  with 2-green. Commits that share a common message but do not share a hash
+  are labeled with 1-yellow. ALl other commits are labeled with 0-red. 
+  Args:
+    logs: List of strings. Each element contains the commit's
+      abreviated hash and message.
+  Returns: 
+    Tuple of two lists containing integers representing the 
+      left and right logs. Each integer corresponds to a color 
+      that the log entries will later be wrapped in.
+  """
   left = logs[0]
   color_map_1 = [None] * len(left)
   right = logs[1]
@@ -90,8 +134,19 @@ def get_color_maps(logs):
         color_map_2[i] = 0
   return color_map_1, color_map_2
 
-# Use color_maps to modifiy each log with its appropriate color
 def color_logs(color_maps, logs):
+  """
+  Wraps each of the commits in each log in color formatting.
+  Args:
+    color_maps: List of two lists containing integers representing the 
+      left and right logs. Each integer corresponds to a color that the log entries
+      will later be wrapped in.
+    logs: List of strings. Each element contains the commit's
+      abreviated hash and message.
+  Returns:
+    A list containing the two logs with each of their string elements now wrapped 
+    in  color formatting.
+  """
   left_logs = logs[0]
   left_map = color_maps[0]
   right_logs = logs[1]
@@ -103,6 +158,19 @@ def color_logs(color_maps, logs):
   return [left_logs, right_logs]
 
 def reduce_logs_length(logs, color_maps):
+  """
+  Finds the furthest point in either branch chronologically where the 
+  commits no longer have any differences and sets that as the 
+  cutoff point where the logs will stop being displayed.
+  Args:
+    logs: List of strings. Each element contains the commit's
+      abreviated hash and message.
+    color_maps: List of two lists containing integers representing the 
+      left and right logs. Each integer corresponds to a color that the log entries
+      will later be wrapped in.
+  Returns:
+    A tuple containing the truncated logs and color_maps arguments.
+  """
   left_map, right_map = color_maps
   left_log, right_log = logs
   last_left_difference = len(left_map) - 1
@@ -121,6 +189,16 @@ def reduce_logs_length(logs, color_maps):
   return [left_log, right_log], [left_map, right_map]
 
 def display_logs(colored_logs):
+  """
+  Prints the commits from each log side by side.
+  To keep the script cross-platform all formatting is done 
+  within the script use of terminal commands is avoided.
+  Args:
+    colored_logs: List of strings. Each element contains the commit's
+      abreviated hash and message wrapped in a color formatting.
+  Returns: 
+    None
+  """
   MAX_PADDING = 55
   left = colored_logs[0]
   right = colored_logs[1]
@@ -138,6 +216,14 @@ def valid_number_of_arguments(args):
   return 0 < len(args) < 3
 
 def get_logs(args):
+  """
+  Calls retrieve_log() to convert each argument into its corresponding git log.
+  Args:
+    args: A list of strings with each string one of the arguments from sys.argv.
+  Returns:
+    A list of strings with each string containing 
+    the commit's abreviated hash and message.
+  """
   logs = []
   if len(args) == 1:
     current_branch = get_current_branch()
@@ -147,6 +233,9 @@ def get_logs(args):
   return logs
 
 def run_script():
+  """
+  Entry point into script from which all other functions are called
+  """
   logs = []
   args = sys.argv[1:]
   if valid_number_of_arguments(args):
