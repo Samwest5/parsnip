@@ -25,7 +25,6 @@ def makeColor(commit, colorCode):
   if colorCode is 3:
     return f'\033[96m{commit}\033[00m'
 
-# Pipe the git log on the passed branch and return the abbreviated hashes with messages
 def retreive_log(branch):
   """
   In a subprocess retrieves the formatted git log of whatever branch
