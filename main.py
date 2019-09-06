@@ -5,12 +5,12 @@ def makeColor(commit, colorCode):
   # red
   if colorCode == 0:
     return f'\033[91m{commit}\033[00m'
-  # green
-  if colorCode is 1:
-    return f'\033[92m{commit}\033[00m'
   # yellow
-  if colorCode is 2:
+  if colorCode is 1:
     return f'\033[93m{commit}\033[00m'
+  # green
+  if colorCode is 2:
+    return f'\033[92m{commit}\033[00m'
   # cyan
   if colorCode is 3:
     return f'\033[96m{commit}\033[00m'
@@ -25,7 +25,6 @@ def retreive_log(branch):
   except subprocess.CalledProcessError:
     print(f'Error with retrieving log for branch "{branch}"')
     sys.exit()
-
   return log.stdout.decode().splitlines()
 
 def get_current_branch():
@@ -35,9 +34,8 @@ def get_current_branch():
                         stderr=subprocess.PIPE, 
                         check=True)
   except subprocess.CalledProcessError:
-    print('No current branch found')
+    print('Error with retrieving current branch')
     sys.exit()
-
   return log.stdout.decode().strip()
 
 # Reduce the length of all commit messages to 31 characters
@@ -61,29 +59,29 @@ def reduce_text_length(logs):
 # by iterate each commit from the left log and
 # comparing against the commits from the right log
 def get_color_maps(logs):
-  first = logs[0]
-  color_map_1 = [None] * len(first)
-  second = logs[1]
-  color_map_2 = [None] * len(second)
+  left = logs[0]
+  color_map_1 = [None] * len(left)
+  right = logs[1]
+  color_map_2 = [None] * len(right)
   color_map_1[0] = 3
   color_map_2[0] = 3
-  for i, commit_1 in enumerate(first):
+  for i, commit_1 in enumerate(left):
     if i == 0:
       continue
-    first_hash, first_message = commit_1.split(' ', 1)
-    for j, commit_2 in enumerate(second):
+    left_hash, left_message = commit_1.split(' ', 1)
+    for j, commit_2 in enumerate(right):
       if j == 0:
         continue
-      second_hash, second_message = commit_2.split(' ', 1)
+      right_hash, right_message = commit_2.split(' ', 1)
       if color_map_2[j]:
         continue
-      if first_hash == second_hash:
-        color_map_1[i] = 1
-        color_map_2[j] = 1
-        break
-      elif first_message == second_message:
+      if left_hash == right_hash:
         color_map_1[i] = 2
         color_map_2[j] = 2
+        break
+      elif left_message == right_message:
+        color_map_1[i] = 1
+        color_map_2[j] = 1
     for i, color in enumerate(color_map_1):
       if not color:
         color_map_1[i] = 0
@@ -103,6 +101,24 @@ def color_logs(color_maps, logs):
   for i, commit in enumerate(right_logs):
     right_logs[i] = makeColor(commit, right_map[i])
   return [left_logs, right_logs]
+
+def reduce_logs_length(logs, color_maps):
+  left_map, right_map = color_maps
+  left_log, right_log = logs
+  last_left_difference = len(left_map) - 1
+  last_right_difference = len(right_map) - 1
+  for i, color in enumerate(left_map):
+    if color == 0 or color == 1:
+      last_left_difference = i
+  for i, color in enumerate(right_map):
+    if color == 0 or color == 1:
+      last_right_difference = i
+  max_last_difference = max(last_left_difference, last_right_difference)
+  left_map = left_map[:max_last_difference + 2]
+  left_log = left_log[:max_last_difference + 2]
+  right_map = right_map[:max_last_difference + 2]
+  right_log = right_log[:max_last_difference + 2]
+  return [left_log, right_log], [left_map, right_map]
 
 def display_logs(colored_logs):
   MAX_PADDING = 55
@@ -137,6 +153,7 @@ def run_script():
     logs = get_logs(args)
     logs = reduce_text_length(logs)
     color_maps = get_color_maps(logs)
+    logs, color_maps = reduce_logs_length(logs, color_maps)
     colored_logs = color_logs(color_maps, logs)
     display_logs(colored_logs)
   else:
