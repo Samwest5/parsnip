@@ -43,7 +43,7 @@ def get_current_branch():
 # Reduce the length of all commit messages to 31 characters
 # and append "..." if it needs to be truncated to show it was reduced
 # for cleaner console display
-def trim_length(logs):
+def reduce_text_length(logs):
   trimmed_logs = []
   for i in range(len(logs)):
     trimmed_logs.append([])
@@ -92,6 +92,7 @@ def get_color_maps(logs):
         color_map_2[i] = 0
   return color_map_1, color_map_2
 
+# Use color_maps to modifiy each log with its appropriate color
 def color_logs(color_maps, logs):
   left_logs = logs[0]
   left_map = color_maps[0]
@@ -103,10 +104,7 @@ def color_logs(color_maps, logs):
     right_logs[i] = makeColor(commit, right_map[i])
   return [left_logs, right_logs]
 
-def display_logs(logs):
-  trimmed_logs = trim_length(logs)
-  color_maps = get_color_maps(trimmed_logs)
-  colored_logs = color_logs(color_maps, trimmed_logs)
+def display_logs(colored_logs):
   MAX_PADDING = 55
   left = colored_logs[0]
   right = colored_logs[1]
@@ -119,25 +117,30 @@ def display_logs(logs):
     else:
       padding = MAX_PADDING - len(left[i])
       print(left[i] + padding * " " + right[i])
-    
-def run():
-  logs = []
-  args = sys.argv[1:]
 
-  if len(args) > 2:
-    print('Too many branches')
-    sys.exit()
-  elif len(args) == 0:
-    print('Too few branches')
-    sys.exit()
-  elif len(args) == 1:
+def valid_number_of_arguments(args):
+  return 0 < len(args) < 3
+
+def get_logs(args):
+  logs = []
+  if len(args) == 1:
     current_branch = get_current_branch()
     logs.append([current_branch] + retreive_log(current_branch))
-
   for arg in args:
     logs.append([arg] + retreive_log(arg))
+  return logs
 
-  display_logs(logs)
-
+def run_script():
+  logs = []
+  args = sys.argv[1:]
+  if valid_number_of_arguments(args):
+    logs = get_logs(args)
+    logs = reduce_text_length(logs)
+    color_maps = get_color_maps(logs)
+    colored_logs = color_logs(color_maps, logs)
+    display_logs(colored_logs)
+  else:
+    print("Error with number of arguments - must pass between 1-2")
+  
 if __name__ == "__main__":
-  run()
+  run_script()
